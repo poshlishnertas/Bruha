@@ -13,7 +13,7 @@ local url = "http://93.183.83.94:8000/webhook/87f95f93-ff28-4385-9b2b-7bd94f4982
 local keywords = {
 	"Queen Bee", "Disco Bee", "Butterfly", "Raccoon",
 	"Dragonfly", "Mimic Octopus", "Fennec Fox",
-	"T-Rex", "Spinosaurus", "Kitsune", "Corrupted Kitsune", "Rainbow", "Corrupted Kodama", "Kodama", "Ascended", "Chicken Zombie", "Red Fox"
+	"T-Rex", "Spinosaurus", "Kitsune", "Corrupted Kitsune", "Rainbow", "Corrupted Kodama", "Kodama", "Ascended", "Chicken Zombie", "Red Fox", "Golden Dragonfly"
 }
 
 local HttpService = game:GetService("HttpService")
