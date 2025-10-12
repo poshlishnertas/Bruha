@@ -1,0 +1,149 @@
+-- Put this LocalScript inside ReplicatedFirst
+
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local ContextActionService = game:GetService("ContextActionService")
+
+-- Remove Roblox default loading screen
+ReplicatedFirst:RemoveDefaultLoadingScreen()
+
+-- Create GUI
+local player = Players.LocalPlayer
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.IgnoreGuiInset = true
+screenGui.ResetOnSpawn = false
+screenGui.Name = "CustomLoadingScreen"
+screenGui.Parent = game:GetService("CoreGui")
+
+-- Background
+local background = Instance.new("Frame")
+background.Size = UDim2.new(1, 0, 1, 0)
+background.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
+background.Parent = screenGui
+
+-- Gradient
+local gradient = Instance.new("UIGradient")
+gradient.Rotation = 45
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 10, 40)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 50, 150)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 20, 80))
+}
+gradient.Parent = background
+
+-- Rotate the gradient continuously
+spawn(function()
+    while screenGui and screenGui.Parent do
+        gradient.Rotation = (gradient.Rotation + 1) % 360
+        RunService.RenderStepped:Wait()
+    end
+end)
+
+-- "Loading..." text
+local loadingText = Instance.new("TextLabel")
+loadingText.Size = UDim2.new(0.6, 0, 0.1, 0)
+loadingText.Position = UDim2.new(0.2, 0, 0.45, 0)
+loadingText.Text = "Loading... 0%"
+loadingText.Font = Enum.Font.GothamBlack
+loadingText.TextSize = 32
+loadingText.TextColor3 = Color3.fromRGB(200, 220, 255)
+loadingText.BackgroundTransparency = 1
+loadingText.Parent = background
+
+-- Progress bar background
+local barBg = Instance.new("Frame")
+barBg.Size = UDim2.new(0.6, 0, 0.05, 0)
+barBg.Position = UDim2.new(0.2, 0, 0.55, 0)
+barBg.BackgroundColor3 = Color3.fromRGB(30, 30, 60)
+barBg.BorderSizePixel = 0
+barBg.Parent = background
+
+local barCorner = Instance.new("UICorner")
+barCorner.CornerRadius = UDim.new(0, 10)
+barCorner.Parent = barBg
+
+-- Progress bar fill
+local barFill = Instance.new("Frame")
+barFill.Size = UDim2.new(0, 0, 1, 0)
+barFill.BackgroundColor3 = Color3.fromRGB(150, 200, 255)
+barFill.Parent = barBg
+
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(0, 10)
+fillCorner.Parent = barFill
+
+-- Function to update progress
+local function updateProgress(p)
+    loadingText.Text = "Loading... " .. p .. "%"
+    barFill:TweenSize(UDim2.new(p / 100, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Sine, 0.1, true)
+end
+
+-- === BLOCKING OPTIONS / LEAVE MENU WHILE LOADING ===
+-- This binds Escape and common controller/back keys so the default menu doesn't open.
+-- When the loading GUI is removed we unbind so normal behavior resumes.
+
+local BLOCK_ACTION_NAME = "BLOCK_MENU_OPEN"
+
+local function blockMenuAction(actionName, inputState, inputObject)
+    -- Consume the input so default menu toggle doesn't run.
+    -- Return Enum.ContextActionResult.Sink to indicate the input was handled.
+    return Enum.ContextActionResult.Sink
+end
+
+-- Keys we bind to (Escape, and several common controller/back buttons)
+local keysToBlock = {
+    Enum.KeyCode.Escape,
+    Enum.KeyCode.ButtonStart,
+    Enum.KeyCode.ButtonSelect,
+    Enum.KeyCode.ButtonB,        -- common "back" / cancel on some controllers
+    Enum.KeyCode.Backspace       -- just in case on certain platforms
+}
+
+-- Bind the blocking action now (keeps menu from opening while GUI present)
+ContextActionService:BindAction(BLOCK_ACTION_NAME, blockMenuAction, false, unpack(keysToBlock))
+
+-- Safety: if the script or GUI is destroyed unexpectedly, ensure unbind happens.
+local function cleanupBlocking()
+    -- Unbind only if still bound
+    pcall(function()
+        ContextActionService:UnbindAction(BLOCK_ACTION_NAME)
+    end)
+end
+
+-- Make sure we unbind when the GUI is removed
+screenGui.AncestryChanged:Connect(function(_, parent)
+    if not parent then
+        cleanupBlocking()
+    end
+end)
+
+-- Also unbind on script end/finalization (defensive)
+local closing = false
+local function finishAndCleanup()
+    if closing then return end
+    closing = true
+    cleanupBlocking()
+    if screenGui and screenGui.Parent then
+        screenGui:Destroy()
+    end
+end
+
+-- === Simulated loading (5-second feel) ===
+spawn(function()
+    local duration = 100
+    local steps = 100
+    for i = 1, steps do
+        updateProgress(i)
+        wait(duration / steps)
+    end
+
+    loadingText.Text = "Loading Complete!"
+    TweenService:Create(loadingText, TweenInfo.new(1), {TextColor3 = Color3.fromRGB(100, 255, 100)}):Play()
+    wait(1)
+
+    -- Cleanup: unbind the block and remove the GUI so player menus work again
+    finishAndCleanup()
+end)
