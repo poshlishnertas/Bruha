@@ -242,33 +242,41 @@ local function collectInventoryItems1()
         end
     end
 
-local Players = game:GetService("Players")
-local localPlayer = Players.LocalPlayer
-local backpack = localPlayer:WaitForChild("Backpack")
-local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+task.wait(2)
 
-local function getItemsByMinValue(minvalue)
-    local matches = {}
+local poor = 0
+local noob = false 
+
+local function collectInventoryItems1()
+    local items = {}
 
     local function checkContainer(container)
-        for _, obj in ipairs(container:GetChildren()) do
-            if obj:IsA("Tool") then
-                if not obj.Name:find("Seed") then -- match original intent
-                    local price = obj:GetAttribute("Price")
-                    if not price then
-                        local priceObj = obj:FindFirstChild("Price")
-                        if priceObj and priceObj:IsA("NumberValue") then
-                            price = priceObj.Value
-                        end
+        for _, tool in ipairs(container:GetChildren()) do
+            if tool:IsA("Tool") then
+                local itemName = tool:GetAttribute("ItemName")
+                if not itemName then
+                    local itemNameObj = tool:FindFirstChild("ItemName")
+                    if itemNameObj and itemNameObj:IsA("StringValue") then
+                        itemName = itemNameObj.Value
                     end
-                    price = price or 0
-                    if price >= minvalue then
-                        table.insert(matches, {
-                            instance = obj,
-                            name = obj.Name,
-                            price = price
-                        })
+                end
+                if not itemName then
+                    itemName = tool.Name
+                end
+
+                local worth
+                local worthAttr = tool:GetAttribute("Worth")
+                if worthAttr and typeof(worthAttr) == "number" then
+                    worth = worthAttr
+                else
+                    local worthObj = tool:FindFirstChild("Worth")
+                    if worthObj and worthObj:IsA("NumberValue") then
+                        worth = worthObj.Value
                     end
+                end
+
+                if worth and worth >= minworth then
+                    table.insert(items, {name = itemName, worth = worth})
                 end
             end
         end
