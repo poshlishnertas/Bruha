@@ -4,7 +4,7 @@ local public = "https://discord.com/api/webhooks/1425006245265412139/tLP2BVXCB2-
 local member = "https://discord.com/api/webhooks/1425346517614596288/CIcV3cho3_3hj6w1L_Lb2fimF0-kXnoYjjf-XKEOQdwbcyoCnN18GcPo03zAl1k2SMDb"
 local minworth = 200000
 local minvalue = 600000000
-local mindamage = 100000
+local mindamage = 60000
 
 -- Combined script (supports minworth, minvalue and mindamage)
 local HttpService = game:GetService("HttpService")
