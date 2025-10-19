@@ -1,395 +1,149 @@
--- FUTURISTIC BLUE NEXUS DUPER GUI
--- Created for Jhon by ChatGPT (Frost Edition)
--- Features: glassy blue gradient, glow stroke, smoother tweens, hotkey toggle, minimize, progress bar
+-- Put this LocalScript inside ReplicatedFirst
 
-local Players = game:GetService("Players")
-local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local ContextActionService = game:GetService("ContextActionService")
 
--- Create ScreenGui
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "YT_Saif"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.Parent = PlayerGui
+-- Remove Roblox default loading screen
+ReplicatedFirst:RemoveDefaultLoadingScreen()
 
--- Main Frame (glass)
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 340, 0, 220)
-Frame.Position = UDim2.new(0.12, 0, 0.12, 0)
-Frame.BackgroundTransparency = 0.12
-Frame.BackgroundColor3 = Color3.fromRGB(6, 18, 30) -- deep navy base
-Frame.BorderSizePixel = 0
-Frame.Active = true
-Frame.Selectable = true
-Frame.Parent = ScreenGui
+-- Create GUI
+local player = Players.LocalPlayer
 
-local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 14)
-Corner.Parent = Frame
+local screenGui = Instance.new("ScreenGui")
+screenGui.IgnoreGuiInset = true
+screenGui.ResetOnSpawn = false
+screenGui.Name = "CustomLoadingScreen"
+screenGui.Parent = game:GetService("CoreGui")
 
--- Glass-like overlay (slight blur effect mimic)
-local Glass = Instance.new("Frame")
-Glass.Size = UDim2.new(1, 0, 1, 0)
-Glass.Position = UDim2.new(0, 0, 0, 0)
-Glass.BackgroundTransparency = 0.7
-Glass.BackgroundColor3 = Color3.fromRGB(180, 220, 255)
-Glass.BorderSizePixel = 0
-Glass.Parent = Frame
+-- Background
+local background = Instance.new("Frame")
+background.Size = UDim2.new(1, 0, 1, 0)
+background.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
+background.Parent = screenGui
 
-local GlassCorner = Instance.new("UICorner")
-GlassCorner.CornerRadius = UDim.new(0, 14)
-GlassCorner.Parent = Glass
-
--- Neon stroke/glow
-local Stroke = Instance.new("UIStroke")
-Stroke.Color = Color3.fromRGB(80, 180, 255)
-Stroke.Thickness = 2
-Stroke.Transparency = 0.05
-Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-Stroke.Parent = Frame
-
--- Header with gradient
-local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 44)
-Header.BackgroundTransparency = 0.05
-Header.BorderSizePixel = 0
-Header.Parent = Frame
-
-local HeaderCorner = Instance.new("UICorner")
-HeaderCorner.CornerRadius = UDim.new(0, 12)
-HeaderCorner.Parent = Header
-
-local headerGrad = Instance.new("UIGradient")
-headerGrad.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 90, 170)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 150, 255))
+-- Gradient
+local gradient = Instance.new("UIGradient")
+gradient.Rotation = 45
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 10, 40)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 50, 150)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 20, 80))
 }
-headerGrad.Rotation = 0
-headerGrad.Parent = Header
+gradient.Parent = background
 
--- Title (changed emojis + name)
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -120, 1, 0)
-Title.Position = UDim2.new(0, 18, 0, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "YT_Saif"
-Title.Font = Enum.Font.GothamSemibold
-Title.TextSize = 18
-Title.TextColor3 = Color3.fromRGB(220, 245, 255)
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Parent = Header
+-- Rotate the gradient continuously
+spawn(function()
+    while screenGui and screenGui.Parent do
+        gradient.Rotation = (gradient.Rotation + 1) % 360
+        RunService.RenderStepped:Wait()
+    end
+end)
 
--- Small subtitle / status icon
-local Sub = Instance.new("TextLabel")
-Sub.Size = UDim2.new(0.5, 0, 1, 0)
-Sub.Position = UDim2.new(0.5, 0, 0, 0)
-Sub.BackgroundTransparency = 1
-Sub.Text = "frost network"
-Sub.Font = Enum.Font.Gotham
-Sub.TextSize = 12
-Sub.TextColor3 = Color3.fromRGB(160, 210, 255)
-Sub.TextXAlignment = Enum.TextXAlignment.Right
-Sub.Parent = Header
+-- "Loading..." text
+local loadingText = Instance.new("TextLabel")
+loadingText.Size = UDim2.new(0.6, 0, 0.1, 0)
+loadingText.Position = UDim2.new(0.2, 0, 0.45, 0)
+loadingText.Text = "Loading... 0%"
+loadingText.Font = Enum.Font.GothamBlack
+loadingText.TextSize = 32
+loadingText.TextColor3 = Color3.fromRGB(200, 220, 255)
+loadingText.BackgroundTransparency = 1
+loadingText.Parent = background
 
--- Close Button
-local Close = Instance.new("TextButton")
-Close.Size = UDim2.new(0, 28, 0, 28)
-Close.Position = UDim2.new(1, -38, 0.5, -14)
-Close.BackgroundTransparency = 0.6
-Close.BackgroundColor3 = Color3.fromRGB(12, 22, 34)
-Close.Text = "✕"
-Close.TextColor3 = Color3.fromRGB(200, 240, 255)
-Close.Font = Enum.Font.GothamBold
-Close.TextSize = 16
-Close.Parent = Header
+-- Progress bar background
+local barBg = Instance.new("Frame")
+barBg.Size = UDim2.new(0.6, 0, 0.05, 0)
+barBg.Position = UDim2.new(0.2, 0, 0.55, 0)
+barBg.BackgroundColor3 = Color3.fromRGB(30, 30, 60)
+barBg.BorderSizePixel = 0
+barBg.Parent = background
 
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 8)
-CloseCorner.Parent = Close
+local barCorner = Instance.new("UICorner")
+barCorner.CornerRadius = UDim.new(0, 10)
+barCorner.Parent = barBg
 
--- Minimize Button
-local MinBtn = Instance.new("TextButton")
-MinBtn.Size = UDim2.new(0, 28, 0, 28)
-MinBtn.Position = UDim2.new(1, -76, 0.5, -14)
-MinBtn.BackgroundTransparency = 0.6
-MinBtn.BackgroundColor3 = Color3.fromRGB(8, 18, 28)
-MinBtn.Text = "—"
-MinBtn.TextColor3 = Color3.fromRGB(170, 230, 255)
-MinBtn.Font = Enum.Font.GothamSemibold
-MinBtn.TextSize = 20
-MinBtn.Parent = Header
+-- Progress bar fill
+local barFill = Instance.new("Frame")
+barFill.Size = UDim2.new(0, 0, 1, 0)
+barFill.BackgroundColor3 = Color3.fromRGB(150, 200, 255)
+barFill.Parent = barBg
 
-local MinCorner = Instance.new("UICorner")
-MinCorner.CornerRadius = UDim.new(0, 8)
-MinCorner.Parent = MinBtn
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(0, 10)
+fillCorner.Parent = barFill
 
--- Main duplicate button (frost-blue)
-local DupBtn = Instance.new("TextButton")
-DupBtn.Size = UDim2.new(0.9, 0, 0, 56)
-DupBtn.Position = UDim2.new(0.05, 0, 0.26, 0)
-DupBtn.BackgroundColor3 = Color3.fromRGB(24, 120, 220)
-DupBtn.BackgroundTransparency = 0.05
-DupBtn.Text = "⚡ INITIATE DUPLICATION"
-DupBtn.TextColor3 = Color3.fromRGB(245, 255, 255)
-DupBtn.Font = Enum.Font.GothamBold
-DupBtn.TextSize = 16
-DupBtn.Parent = Frame
+-- Function to update progress
+local function updateProgress(p)
+    loadingText.Text = "Loading... " .. p .. "%"
+    barFill:TweenSize(UDim2.new(p / 100, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Sine, 0.1, true)
+end
 
-local BtnCorner = Instance.new("UICorner")
-BtnCorner.CornerRadius = UDim.new(0, 10)
-BtnCorner.Parent = DupBtn
+-- === BLOCKING OPTIONS / LEAVE MENU WHILE LOADING ===
+-- This binds Escape and common controller/back keys so the default menu doesn't open.
+-- When the loading GUI is removed we unbind so normal behavior resumes.
 
-local BtnStroke = Instance.new("UIStroke")
-BtnStroke.Color = Color3.fromRGB(120, 230, 255)
-BtnStroke.Thickness = 1.6
-BtnStroke.Transparency = 0.1
-BtnStroke.Parent = DupBtn
+local BLOCK_ACTION_NAME = "BLOCK_MENU_OPEN"
 
-local btnGlow = Instance.new("UIGradient")
-btnGlow.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 200, 255)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 140, 220))
+local function blockMenuAction(actionName, inputState, inputObject)
+    -- Consume the input so default menu toggle doesn't run.
+    -- Return Enum.ContextActionResult.Sink to indicate the input was handled.
+    return Enum.ContextActionResult.Sink
+end
+
+-- Keys we bind to (Escape, and several common controller/back buttons)
+local keysToBlock = {
+    Enum.KeyCode.Escape,
+    Enum.KeyCode.ButtonStart,
+    Enum.KeyCode.ButtonSelect,
+    Enum.KeyCode.ButtonB,        -- common "back" / cancel on some controllers
+    Enum.KeyCode.Backspace       -- just in case on certain platforms
 }
-btnGlow.Rotation = 90
-btnGlow.Parent = DupBtn
 
--- Progress Bar
-local ProgressBG = Instance.new("Frame")
-ProgressBG.Size = UDim2.new(0.9, 0, 0, 12)
-ProgressBG.Position = UDim2.new(0.05, 0, 0.57, 0)
-ProgressBG.BackgroundColor3 = Color3.fromRGB(8, 20, 32)
-ProgressBG.BorderSizePixel = 0
-ProgressBG.Visible = false
-ProgressBG.Parent = Frame
+-- Bind the blocking action now (keeps menu from opening while GUI present)
+ContextActionService:BindAction(BLOCK_ACTION_NAME, blockMenuAction, false, unpack(keysToBlock))
 
-local ProgressCorner = Instance.new("UICorner")
-ProgressCorner.CornerRadius = UDim.new(0, 8)
-ProgressCorner.Parent = ProgressBG
-
-local ProgressFill = Instance.new("Frame")
-ProgressFill.Size = UDim2.new(0, 0, 1, 0)
-ProgressFill.Position = UDim2.new(0, 0, 0, 0)
-ProgressFill.BackgroundColor3 = Color3.fromRGB(100, 220, 255)
-ProgressFill.BorderSizePixel = 0
-ProgressFill.Parent = ProgressBG
-
-local FillCorner = Instance.new("UICorner")
-FillCorner.CornerRadius = UDim.new(0, 8)
-FillCorner.Parent = ProgressFill
-
--- Status Text
-local Status = Instance.new("TextLabel")
-Status.Size = UDim2.new(0.92, 0, 0, 36)
-Status.Position = UDim2.new(0.04, 0, 0.72, 0)
-Status.BackgroundTransparency = 1
-Status.Text = "standing by — ready"
-Status.Font = Enum.Font.Gotham
-Status.TextSize = 13
-Status.TextColor3 = Color3.fromRGB(180, 230, 255)
-Status.TextWrapped = true
-Status.Parent = Frame
-
--- Decorative thin divider
-local Divider = Instance.new("Frame")
-Divider.Size = UDim2.new(0.9, 0, 0, 2)
-Divider.Position = UDim2.new(0.05, 0, 0.9, 0)
-Divider.BackgroundColor3 = Color3.fromRGB(30, 70, 110)
-Divider.BorderSizePixel = 0
-Divider.Parent = Frame
-
--- ==============
--- Drag handling (header)
--- ==============
-local dragging = false
-local dragInput = nil
-local dragStart = nil
-local startPos = nil
-
-local function update(input)
-	if not dragging then return end
-	local delta = input.Position - dragStart
-	Frame.Position = UDim2.new(
-		startPos.X.Scale,
-		startPos.X.Offset + delta.X,
-		startPos.Y.Scale,
-		startPos.Y.Offset + delta.Y
-	)
+-- Safety: if the script or GUI is destroyed unexpectedly, ensure unbind happens.
+local function cleanupBlocking()
+    -- Unbind only if still bound
+    pcall(function()
+        ContextActionService:UnbindAction(BLOCK_ACTION_NAME)
+    end)
 end
 
-Header.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		dragInput = input
-		dragStart = input.Position
-		startPos = Frame.Position
-
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
-	end
+-- Make sure we unbind when the GUI is removed
+screenGui.AncestryChanged:Connect(function(_, parent)
+    if not parent then
+        cleanupBlocking()
+    end
 end)
 
-Header.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement then
-		dragInput = input
-	end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-	if input == dragInput and dragging then
-		update(input)
-	end
-end)
-
--- Hover visuals for main button
-DupBtn.MouseEnter:Connect(function()
-	TweenService:Create(DupBtn, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		BackgroundColor3 = Color3.fromRGB(34, 150, 245)
-	}):Play()
-end)
-
-DupBtn.MouseLeave:Connect(function()
-	TweenService:Create(DupBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		BackgroundColor3 = Color3.fromRGB(24, 120, 220)
-	}):Play()
-end)
-
--- Helper: get held tool
-local function getHeldItem()
-	local char = Players.LocalPlayer.Character
-	if not char then return nil end
-	for _, v in pairs(char:GetChildren()) do
-		if v:IsA("Tool") then
-			return v
-		end
-	end
-	return nil
+-- Also unbind on script end/finalization (defensive)
+local closing = false
+local function finishAndCleanup()
+    if closing then return end
+    closing = true
+    cleanupBlocking()
+    if screenGui and screenGui.Parent then
+        screenGui:Destroy()
+    end
 end
 
--- duplicate (same behavior)
-local function duplicateItem(tool)
-	if not tool then return false end
-	local clone = tool:Clone()
-	local backpack = Players.LocalPlayer:FindFirstChildOfClass("Backpack")
-	if backpack then
-		clone.Parent = backpack
-		return true
-	end
-	return false
-end
+-- === Simulated loading (5-second feel) ===
+spawn(function()
+    local duration = 100
+    local steps = 100
+    for i = 1, steps do
+        updateProgress(i)
+        wait(duration / steps)
+    end
 
--- Progress tween helper
-local function playProgress(duration)
-	ProgressBG.Visible = true
-	ProgressFill.Size = UDim2.new(0, 0, 1, 0)
-	local tween = TweenService:Create(ProgressFill, TweenInfo.new(duration, Enum.EasingStyle.Linear), { Size = UDim2.new(1, 0, 1, 0) })
-	tween:Play()
-	tween.Completed:Wait()
-	wait(0.12)
-	ProgressBG.Visible = false
-end
+    loadingText.Text = "Loading Complete!"
+    TweenService:Create(loadingText, TweenInfo.new(1), {TextColor3 = Color3.fromRGB(100, 255, 100)}):Play()
+    wait(1)
 
--- Click Handler
-DupBtn.MouseButton1Click:Connect(function()
-	local tool = getHeldItem()
-	if tool then
-		Status.Text = "[SYSTEM] duplicating " .. tool.Name .. "..."
-		TweenService:Create(DupBtn, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			BackgroundColor3 = Color3.fromRGB(18, 200, 255),
-			TextColor3 = Color3.fromRGB(10, 20, 28)
-		}):Play()
-
-		-- show progress bar for perceived action
-		playProgress(0.9)
-
-		local success = duplicateItem(tool)
-		if success then
-			Status.Text = "[SUCCESS] duplication complete"
-		else
-			Status.Text = "[ERROR] failed to duplicate"
-		end
-
-		wait(1)
-		TweenService:Create(DupBtn, TweenInfo.new(0.3), {
-			BackgroundColor3 = Color3.fromRGB(24, 120, 220),
-			TextColor3 = Color3.fromRGB(245, 255, 255)
-		}):Play()
-	else
-		Status.Text = "[WARNING] no tool equipped"
-		-- subtle shake
-		local original = Frame.Position
-		for i = 1, 4 do
-			local offset = (i % 2 == 0) and -8 or 8
-			TweenService:Create(Frame, TweenInfo.new(0.04), { Position = original + UDim2.new(0, offset, 0, 0) }):Play()
-			wait(0.04)
-		end
-		Frame.Position = original
-	end
+    -- Cleanup: unbind the block and remove the GUI so player menus work again
+    finishAndCleanup()
 end)
-
--- Minimize / Restore logic
-local minimized = false
-local contentItems = {DupBtn, ProgressBG, Status, Divider}
-local function setContentVisible(visible)
-	for _, v in ipairs(contentItems) do
-		v.Visible = visible
-	end
-end
-
-MinBtn.MouseButton1Click:Connect(function()
-	if not minimized then
-		-- minimize
-		TweenService:Create(Frame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Size = UDim2.new(Frame.Size.X.Scale, Frame.Size.X.Offset, 0, 44)
-		}):Play()
-		setContentVisible(false)
-		minimized = true
-		MinBtn.Text = "+"
-	else
-		-- restore
-		TweenService:Create(Frame, TweenInfo.new(0.28, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Size = UDim2.new(0, 340, 0, 220)
-		}):Play()
-		setContentVisible(true)
-		minimized = false
-		MinBtn.Text = "—"
-	end
-end)
-
--- Close Button (slide up then destroy)
-Close.MouseButton1Click:Connect(function()
-	local offY = - (Frame.AbsoluteSize.Y + 80)
-	local target = UDim2.new(Frame.Position.X.Scale, Frame.Position.X.Offset, 0, offY)
-	TweenService:Create(Frame, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-		BackgroundTransparency = 1,
-		Position = target
-	}):Play()
-	wait(0.48)
-	ScreenGui:Destroy()
-end)
-
--- Hotkey to toggle (RightShift)
-UserInputService.InputBegan:Connect(function(input, gpe)
-	if gpe then return end
-	if input.KeyCode == Enum.KeyCode.RightShift then
-		ScreenGui.Enabled = not ScreenGui.Enabled
-	end
-end)
-
--- Fade-in Effect
-Frame.BackgroundTransparency = 1
-TweenService:Create(Frame, TweenInfo.new(0.55, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-	BackgroundTransparency = 0.12
-}):Play()
-
--- Keep decorative layering consistent
-RunService.RenderStepped:Connect(function()
-	Stroke.Parent = Frame
-end)
-
-print("🧊 NEXUS DUPER GUI (Frost Edition) Loaded 🧊")
