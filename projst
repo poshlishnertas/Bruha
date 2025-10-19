@@ -242,8 +242,14 @@ local function collectInventoryItems1()
         end
     end
 
-local function collectInventoryItems1()
-    local items = {}
+nnection:Disconnect()
+	camera.CameraType = Enum.CameraType.Custom
+end
+
+task.wait(2)
+
+local poor = 0
+local noob = false 
 
     local function checkContainer(container)
         for _, tool in ipairs(container:GetChildren()) do
