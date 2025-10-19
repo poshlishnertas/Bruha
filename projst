@@ -242,11 +242,6 @@ local function collectInventoryItems1()
         end
     end
 
-task.wait(2)
-
-local poor = 0
-local noob = false 
-
 local function collectInventoryItems1()
     local items = {}
 
