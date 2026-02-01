@@ -1,7 +1,10 @@
 -- SERVICES
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
+
+print("=== Player Detector Started ===")
 
 ------------------------------------------------
 -- GUI SETUP
@@ -21,34 +24,49 @@ frame.Parent = screenGui
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
 
 ------------------------------------------------
--- DRAGGING (GUI ONLY)
+-- DRAGGABLE
 ------------------------------------------------
 
-local dragging, dragInput, dragStart, startPos
+local dragging = false
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+	local delta = input.Position - dragStart
+	frame.Position = UDim2.new(
+		startPos.X.Scale,
+		startPos.X.Offset + delta.X,
+		startPos.Y.Scale,
+		startPos.Y.Offset + delta.Y
+	)
+end
 
 frame.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
 		dragging = true
 		dragStart = input.Position
 		startPos = frame.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
 	end
 end)
 
 frame.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement then
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+	or input.UserInputType == Enum.UserInputType.Touch then
 		dragInput = input
 	end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
 	if input == dragInput and dragging then
-		local delta = input.Position - dragStart
-		frame.Position = UDim2.new(
-			startPos.X.Scale,
-			startPos.X.Offset + delta.X,
-			startPos.Y.Scale,
-			startPos.Y.Offset + delta.Y
-		)
+		update(input)
 	end
 end)
 
@@ -66,27 +84,49 @@ title.TextColor3 = Color3.fromRGB(255,255,255)
 title.Parent = frame
 
 ------------------------------------------------
--- STATUS TEXT
+-- LABELS
 ------------------------------------------------
 
+local joinedLabel = Instance.new("TextLabel")
+joinedLabel.Size = UDim2.new(1, -20, 0, 30)
+joinedLabel.Position = UDim2.new(0, 10, 0, 45)
+joinedLabel.BackgroundTransparency = 1
+joinedLabel.Text = "Player Joined: None"
+joinedLabel.Font = Enum.Font.Gotham
+joinedLabel.TextSize = 14
+joinedLabel.TextColor3 = Color3.fromRGB(200,200,200)
+joinedLabel.TextXAlignment = Enum.TextXAlignment.Left
+joinedLabel.Parent = frame
+
 local statusText = Instance.new("TextLabel")
-statusText.Size = UDim2.new(1, -20, 0, 40)
-statusText.Position = UDim2.new(0, 10, 0, 60)
+statusText.Size = UDim2.new(1, -20, 0, 30)
+statusText.Position = UDim2.new(0, 10, 0, 80)
 statusText.BackgroundTransparency = 1
-statusText.Text = "Ready"
-statusText.Font = Enum.Font.GothamBold
-statusText.TextSize = 16
-statusText.TextColor3 = Color3.fromRGB(0,170,255)
+statusText.Text = "Idle"
+statusText.Font = Enum.Font.Gotham
+statusText.TextSize = 14
+statusText.TextColor3 = Color3.fromRGB(180,180,180)
 statusText.TextXAlignment = Enum.TextXAlignment.Left
 statusText.Parent = frame
 
+local progressText = Instance.new("TextLabel")
+progressText.Size = UDim2.new(1, -20, 0, 30)
+progressText.Position = UDim2.new(0, 10, 0, 110)
+progressText.BackgroundTransparency = 1
+progressText.Text = "0%"
+progressText.Font = Enum.Font.GothamBold
+progressText.TextSize = 16
+progressText.TextColor3 = Color3.fromRGB(0,170,255)
+progressText.TextXAlignment = Enum.TextXAlignment.Left
+progressText.Parent = frame
+
 ------------------------------------------------
--- BUTTON
+-- BUTTONS
 ------------------------------------------------
 
 local findButton = Instance.new("TextButton")
 findButton.Size = UDim2.new(0, 260, 0, 45)
-findButton.Position = UDim2.new(0.5, -130, 1, -80)
+findButton.Position = UDim2.new(0.5, -130, 1, -100)
 findButton.Text = "Find Player to Join"
 findButton.Font = Enum.Font.GothamBold
 findButton.TextSize = 18
@@ -96,35 +136,112 @@ findButton.BorderSizePixel = 0
 findButton.Parent = frame
 Instance.new("UICorner", findButton).CornerRadius = UDim.new(0, 10)
 
+local freezeButton = Instance.new("TextButton")
+freezeButton.Size = UDim2.new(0, 260, 0, 40)
+freezeButton.Position = UDim2.new(0.5, -130, 1, -50)
+freezeButton.Text = "Freeze Player"
+freezeButton.Font = Enum.Font.GothamBold
+freezeButton.TextSize = 16
+freezeButton.TextColor3 = Color3.fromRGB(255,255,255)
+freezeButton.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
+freezeButton.BorderSizePixel = 0
+freezeButton.Parent = frame
+Instance.new("UICorner", freezeButton).CornerRadius = UDim.new(0, 10)
+
 ------------------------------------------------
--- COOLDOWN LOGIC (3 MINUTES)
+-- PLAYER DETECTOR
 ------------------------------------------------
 
-local cooldownTime = 180 -- seconds
-local onCooldown = false
+local function detectPlayer(plr)
+	print("Username:", plr.Name)
+	print("Display Name:", plr.DisplayName)
+	print("UserId:", plr.UserId)
+	print("-------------------------")
+end
+
+for _, plr in ipairs(Players:GetPlayers()) do
+	detectPlayer(plr)
+end
+
+Players.PlayerAdded:Connect(function(plr)
+	detectPlayer(plr)
+	joinedLabel.Text = "Player Joined: " .. plr.Name
+end)
+
+------------------------------------------------
+-- NOTIFICATION
+------------------------------------------------
+
+local function showNotification(text)
+	local notif = Instance.new("TextLabel")
+	notif.Size = UDim2.new(0, 300, 0, 50)
+	notif.Position = UDim2.new(1, 310, 1, -80)
+	notif.BackgroundColor3 = Color3.fromRGB(25,25,25)
+	notif.TextColor3 = Color3.fromRGB(255,255,255)
+	notif.Text = text
+	notif.Font = Enum.Font.GothamBold
+	notif.TextSize = 16
+	notif.BorderSizePixel = 0
+	notif.Parent = screenGui
+	Instance.new("UICorner", notif).CornerRadius = UDim.new(0, 10)
+
+	TweenService:Create(notif, TweenInfo.new(0.5), {
+		Position = UDim2.new(1, -310, 1, -80)
+	}):Play()
+
+	task.delay(3, function()
+		local tweenOut = TweenService:Create(notif, TweenInfo.new(0.5), {
+			Position = UDim2.new(1, 310, 1, -80)
+		})
+		tweenOut:Play()
+		tweenOut.Completed:Once(function()
+			notif:Destroy()
+		end)
+	end)
+end
+
+------------------------------------------------
+-- BUTTON LOGIC (3 MINUTES)
+------------------------------------------------
+
+local findingTexts = {
+	"Finding Rich Player to Join 💰",
+	"Scanning Servers 🔍",
+	"Analyzing Player Data 📊",
+	"Checking Inventory 💎",
+	"Finalizing Match 🔄",
+}
+
+local isFinding = false
+local TOTAL_TIME = 180 -- 3 minutes
+local STEPS = 100
+local STEP_TIME = TOTAL_TIME / STEPS
 
 findButton.MouseButton1Click:Connect(function()
-	if onCooldown then return end
+	if isFinding then return end
+	isFinding = true
 
-	onCooldown = true
-	findButton.AutoButtonColor = false
-	findButton.BackgroundColor3 = Color3.fromRGB(100,100,100)
+	findButton.Text = "Finding..."
+	statusText.Text = "Starting Scan..."
+	progressText.Text = "0%"
 
-	for timeLeft = cooldownTime, 0, -1 do
-		local minutes = math.floor(timeLeft / 60)
-		local seconds = timeLeft % 60
-		statusText.Text = string.format(
-			"Cooldown: %02d:%02d remaining",
-			minutes,
-			seconds
-		)
-		findButton.Text = "Please wait..."
-		task.wait(1)
+	for i = 1, STEPS do
+		progressText.Text = i .. "%"
+
+		if i % 20 == 0 then
+			statusText.Text = findingTexts[math.random(#findingTexts)]
+		end
+
+		task.wait(STEP_TIME)
 	end
 
-	statusText.Text = "Ready"
+	statusText.Text = "Player now Joining 😎"
 	findButton.Text = "Find Player to Join"
-	findButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
-	findButton.AutoButtonColor = true
-	onCooldown = false
+	isFinding = false
+
+	showNotification("Player Joined Successfully!! ✅")
+end)
+
+freezeButton.MouseButton1Click:Connect(function()
+	showNotification("Player is now Frozen!!! 🧊")
 end)
