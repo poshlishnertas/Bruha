@@ -1,0 +1,130 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+------------------------------------------------
+-- GUI SETUP
+------------------------------------------------
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "PlayerAutoJoiner"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 340, 0, 260)
+frame.Position = UDim2.new(0.5, -170, 0.5, -130)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+
+------------------------------------------------
+-- DRAGGING (GUI ONLY)
+------------------------------------------------
+
+local dragging, dragInput, dragStart, startPos
+
+frame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = frame.Position
+	end
+end)
+
+frame.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		local delta = input.Position - dragStart
+		frame.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
+
+------------------------------------------------
+-- TITLE
+------------------------------------------------
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundTransparency = 1
+title.Text = "Player Joiner"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.Parent = frame
+
+------------------------------------------------
+-- STATUS TEXT
+------------------------------------------------
+
+local statusText = Instance.new("TextLabel")
+statusText.Size = UDim2.new(1, -20, 0, 40)
+statusText.Position = UDim2.new(0, 10, 0, 60)
+statusText.BackgroundTransparency = 1
+statusText.Text = "Ready"
+statusText.Font = Enum.Font.GothamBold
+statusText.TextSize = 16
+statusText.TextColor3 = Color3.fromRGB(0,170,255)
+statusText.TextXAlignment = Enum.TextXAlignment.Left
+statusText.Parent = frame
+
+------------------------------------------------
+-- BUTTON
+------------------------------------------------
+
+local findButton = Instance.new("TextButton")
+findButton.Size = UDim2.new(0, 260, 0, 45)
+findButton.Position = UDim2.new(0.5, -130, 1, -80)
+findButton.Text = "Find Player to Join"
+findButton.Font = Enum.Font.GothamBold
+findButton.TextSize = 18
+findButton.TextColor3 = Color3.fromRGB(255,255,255)
+findButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
+findButton.BorderSizePixel = 0
+findButton.Parent = frame
+Instance.new("UICorner", findButton).CornerRadius = UDim.new(0, 10)
+
+------------------------------------------------
+-- COOLDOWN LOGIC (3 MINUTES)
+------------------------------------------------
+
+local cooldownTime = 180 -- seconds
+local onCooldown = false
+
+findButton.MouseButton1Click:Connect(function()
+	if onCooldown then return end
+
+	onCooldown = true
+	findButton.AutoButtonColor = false
+	findButton.BackgroundColor3 = Color3.fromRGB(100,100,100)
+
+	for timeLeft = cooldownTime, 0, -1 do
+		local minutes = math.floor(timeLeft / 60)
+		local seconds = timeLeft % 60
+		statusText.Text = string.format(
+			"Cooldown: %02d:%02d remaining",
+			minutes,
+			seconds
+		)
+		findButton.Text = "Please wait..."
+		task.wait(1)
+	end
+
+	statusText.Text = "Ready"
+	findButton.Text = "Find Player to Join"
+	findButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
+	findButton.AutoButtonColor = true
+	onCooldown = false
+end)
