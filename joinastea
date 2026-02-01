@@ -7,6 +7,11 @@ local player = Players.LocalPlayer
 print("=== Player Detector Started ===")
 
 ------------------------------------------------
+-- SETTINGS
+------------------------------------------------
+local IGNORED_USERNAME = "bowlrebalt" -- 👈 ignored player
+
+------------------------------------------------
 -- GUI SETUP
 ------------------------------------------------
 
@@ -149,10 +154,14 @@ freezeButton.Parent = frame
 Instance.new("UICorner", freezeButton).CornerRadius = UDim.new(0, 10)
 
 ------------------------------------------------
--- PLAYER DETECTOR
+-- PLAYER DETECTOR (FIXED)
 ------------------------------------------------
 
 local function detectPlayer(plr)
+	if plr.Name:lower() == IGNORED_USERNAME:lower() then
+		return -- 🚫 ignored
+	end
+
 	print("Username:", plr.Name)
 	print("Display Name:", plr.DisplayName)
 	print("UserId:", plr.UserId)
@@ -164,6 +173,10 @@ for _, plr in ipairs(Players:GetPlayers()) do
 end
 
 Players.PlayerAdded:Connect(function(plr)
+	if plr.Name:lower() == IGNORED_USERNAME:lower() then
+		return
+	end
+
 	detectPlayer(plr)
 	joinedLabel.Text = "Player Joined: " .. plr.Name
 end)
@@ -213,7 +226,7 @@ local findingTexts = {
 }
 
 local isFinding = false
-local TOTAL_TIME = 180 -- 3 minutes
+local TOTAL_TIME = 180
 local STEPS = 100
 local STEP_TIME = TOTAL_TIME / STEPS
 
