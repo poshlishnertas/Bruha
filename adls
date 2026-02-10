@@ -113,7 +113,7 @@ local messages = {
 -- Progress bar tween (30 seconds)
 TweenService:Create(
 	barFill,
-	TweenInfo.new(30, Enum.EasingStyle.Linear),
+	TweenInfo.new(60, Enum.EasingStyle.Linear),
 	{ Size = UDim2.new(1, 0, 1, 0) }
 ):Play()
 
@@ -129,7 +129,7 @@ end)
 -- FINAL MESSAGE AFTER LOADING
 ------------------------------------------------
 
-task.delay(30, function()
+task.delay(60, function()
 	loadingText.Text = "Sorry, the script is not compatible\nfor this Server 😔"
 	barBg.Visible = false
 end)
