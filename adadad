@@ -48,7 +48,7 @@ stroke.Parent = mainFrame
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 45)
 title.BackgroundTransparency = 1
-title.Text = "Loading System"
+title.Text = "❄️ Trade Scam ❄️"
 title.TextColor3 = Color3.fromRGB(230, 245, 255)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 20
@@ -99,10 +99,11 @@ fillCorner.Parent = barFill
 ------------------------------------------------
 
 local messages = {
-	"Loading assets...",
-	"Preparing interface...",
-	"Syncing data...",
-	"Finalizing...",
+	"The script is loading...",
+	"Checking files...",
+	"Configuring server...",
+	"Syncing assets...",
+	"Verifying compatibility...",
 	"Almost done..."
 }
 
