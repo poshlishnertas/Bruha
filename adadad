@@ -111,7 +111,7 @@ local messages = {
 task.spawn(function()
 	for i = 1, #messages do
 		loadingText.Text = messages[i]
-		task.wait(5)
+		task.wait(1.7)
 	end
 end)
 
