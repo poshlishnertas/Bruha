@@ -121,7 +121,7 @@ end)
 
 local loadingTween = TweenService:Create(
 	barFill,
-	TweenInfo.new(60, Enum.EasingStyle.Linear),
+	TweenInfo.new(10, Enum.EasingStyle.Linear),
 	{ Size = UDim2.new(1, 0, 1, 0) }
 )
 
