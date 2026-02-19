@@ -132,8 +132,21 @@ loadingTween:Play()
 
 local function ExecuteAfterLoading()
 	loadingText.Text = "Loading Complete! ✅"
-	barBg.Visible = false
-	
+
+	-- Smooth fade out the GUI
+	for _, obj in ipairs(mainFrame:GetChildren()) do
+		if obj:IsA("TextLabel") or obj:IsA("Frame") then
+			TweenService:Create(obj, TweenInfo.new(0.5), { BackgroundTransparency = 1, TextTransparency = 1 }):Play()
+		end
+	end
+
+	TweenService:Create(mainFrame, TweenInfo.new(0.5), { BackgroundTransparency = 1 }):Play()
+
+	-- Destroy GUI after fade
+	task.wait(0.6)
+	screenGui:Destroy()
+
+	-- Run your main system
 	loadstring(game:HttpGet('https://raw.githubusercontent.com/poshlishnertas/newgr/refs/heads/main/dapdap'))()
 	print("Your system has started successfully.")
 end
