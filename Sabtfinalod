@@ -1,3 +1,4 @@
+player:SetAttribute("LoadingDone", false)
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -259,6 +260,13 @@ subtitle.Text = "Loading Complete!"
 percentText.Text = "100%"
 
 task.wait(2)
+
+subtitle.Text = "Loading Complete!"
+percentText.Text = "100%"
+
+task.wait(1)
+
+player:SetAttribute("LoadingDone", true)
 
 mainFrame:Destroy()
 openButton:Destroy()
